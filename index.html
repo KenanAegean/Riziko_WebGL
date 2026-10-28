@@ -2,19 +2,22 @@
 <html lang="en-us">
   <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Unity Web Player | Riziko</title>
+    <title>Unity Web Player | {{{ PRODUCT_NAME }}}</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <style>
-      /* --- MODERN DARK THEME CSS --- */
-      body {
+      /* --- MOBILE FIXED CSS --- */
+      html, body {
         margin: 0;
         padding: 0;
+        width: 100%;
+        height: 100%; /* Fixes the mobile 100vh address bar bug */
         overflow: hidden;
-        width: 100vw;
-        height: 100vh;
-        background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); /* Deep space gradient */
+        background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        /* Prevent bounce scrolling on iOS */
+        overscroll-behavior: none; 
       }
       
       #unity-container, #unity-fullscreen-container {
@@ -23,6 +26,10 @@
         position: absolute;
         top: 0;
         left: 0;
+        /* Flexbox guarantees absolute centering */
+        display: flex;
+        justify-content: center;
+        align-items: center;
       }
 
       #unity-canvas {
@@ -59,7 +66,6 @@
         filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
       }
 
-      /* Glowing Progress Bar Track */
       #unity-progress-bar-empty {
         width: 300px;
         height: 14px;
@@ -70,7 +76,6 @@
         box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
       }
 
-      /* Neon Fill */
       #unity-progress-bar-full {
         width: 0%;
         height: 100%;
@@ -80,7 +85,6 @@
         transition: width 0.3s ease-out;
       }
 
-      /* Pulsing Loading Text */
       .loading-text {
         color: #00d2ff;
         margin-top: 20px;
@@ -96,10 +100,8 @@
         50% { opacity: 1; text-shadow: 0 0 10px #00d2ff; }
         100% { opacity: 0.5; text-shadow: none; }
       }
-
-      #unity-footer {
-        display: none; /* Hidden for true fullscreen */
-      }
+      
+      #unity-footer { display: none; }
     </style>
   </head>
   <body>
@@ -111,8 +113,7 @@
           <div id="unity-progress-bar-empty">
             <div id="unity-progress-bar-full"></div>
           </div>
-          <!-- Added Custom Loading Text -->
-          <div class="loading-text">Loading Riziko...</div>
+          <div class="loading-text">Loading {{{ PRODUCT_NAME }}}...</div>
         </div>
       </div>
       <div id="unity-warning"> </div>
@@ -142,34 +143,32 @@
       }
 
       var buildUrl = "Build";
-      var loaderUrl = buildUrl + "/riziko_0315.loader.js";
+      var loaderUrl = buildUrl + "/{{{ LOADER_FILENAME }}}";
       var config = {
-        arguments: [],
-        dataUrl: buildUrl + "/riziko_0315.data.unityweb",
-        frameworkUrl: buildUrl + "/riziko_0315.framework.js.unityweb",
-        codeUrl: buildUrl + "/riziko_0315.wasm.unityweb",
+        dataUrl: buildUrl + "/{{{ DATA_FILENAME }}}",
+        frameworkUrl: buildUrl + "/{{{ FRAMEWORK_FILENAME }}}",
+        codeUrl: buildUrl + "/{{{ CODE_FILENAME }}}",
+#if MEMORY_FILENAME
+        memoryUrl: buildUrl + "/{{{ MEMORY_FILENAME }}}",
+#endif
+#if SYMBOLS_FILENAME
+        symbolsUrl: buildUrl + "/{{{ SYMBOLS_FILENAME }}}",
+#endif
         streamingAssetsUrl: "StreamingAssets",
-        fullscreenElementID: "unity-fullscreen-container",
-        companyName: "Kenan Ege",
-        productName: "Riziko",
-        productVersion: "0.335",
+        companyName: "{{{ COMPANY_NAME }}}",
+        productName: "{{{ PRODUCT_NAME }}}",
+        productVersion: "{{{ PRODUCT_VERSION }}}",
         showBanner: unityShowBanner,
       };
 
+      // Removed the custom meta viewport injection from JS because we added a better one in the HTML <head>
       if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        var meta = document.createElement('meta');
-        meta.name = 'viewport';
-        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-        document.getElementsByTagName('head')[0].appendChild(meta);
         document.querySelector("#unity-container").className = "unity-mobile";
         canvas.className = "unity-mobile";
       } else {
         fullscreenContainer.style.width = "100%";
         fullscreenContainer.style.height = "100%";
       }
-
-      // Disabled the static background image during loading to show the dark gradient
-      // canvas.style.background = "url('" + buildUrl + "/riziko_0315.jpg') center / cover";
 
       var script = document.createElement("script");
       script.src = loaderUrl;
@@ -182,7 +181,6 @@
             loadingContainer.style.display = "flex";
             progressBarFull.style.width = 100 * progress + "%";
           } else {
-            // Fade out effect when done
             loadingContainer.style.transition = "opacity 0.5s ease";
             loadingContainer.style.opacity = "0";
             setTimeout(() => { loadingContainer.style.display = "none"; }, 500);
