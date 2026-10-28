@@ -4,10 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Unity Web Player | {{{ PRODUCT_NAME }}}</title>
+    <title>Unity Web Player | Riziko</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <style>
-      /* --- MOBILE FIXED CSS --- */
+      /* --- MOBILE FIXED DARK THEME CSS --- */
       html, body {
         margin: 0;
         padding: 0;
@@ -16,8 +16,7 @@
         overflow: hidden;
         background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        /* Prevent bounce scrolling on iOS */
-        overscroll-behavior: none; 
+        overscroll-behavior: none; /* Prevent bounce scrolling on iOS */
       }
       
       #unity-container, #unity-fullscreen-container {
@@ -113,7 +112,7 @@
           <div id="unity-progress-bar-empty">
             <div id="unity-progress-bar-full"></div>
           </div>
-          <div class="loading-text">Loading {{{ PRODUCT_NAME }}}...</div>
+          <div class="loading-text">Loading Riziko...</div>
         </div>
       </div>
       <div id="unity-warning"> </div>
@@ -143,25 +142,18 @@
       }
 
       var buildUrl = "Build";
-      var loaderUrl = buildUrl + "/{{{ LOADER_FILENAME }}}";
+      var loaderUrl = buildUrl + "/riziko_0315.loader.js";
       var config = {
-        dataUrl: buildUrl + "/{{{ DATA_FILENAME }}}",
-        frameworkUrl: buildUrl + "/{{{ FRAMEWORK_FILENAME }}}",
-        codeUrl: buildUrl + "/{{{ CODE_FILENAME }}}",
-#if MEMORY_FILENAME
-        memoryUrl: buildUrl + "/{{{ MEMORY_FILENAME }}}",
-#endif
-#if SYMBOLS_FILENAME
-        symbolsUrl: buildUrl + "/{{{ SYMBOLS_FILENAME }}}",
-#endif
+        dataUrl: buildUrl + "/riziko_0315.data.unityweb",
+        frameworkUrl: buildUrl + "/riziko_0315.framework.js.unityweb",
+        codeUrl: buildUrl + "/riziko_0315.wasm.unityweb",
         streamingAssetsUrl: "StreamingAssets",
-        companyName: "{{{ COMPANY_NAME }}}",
-        productName: "{{{ PRODUCT_NAME }}}",
-        productVersion: "{{{ PRODUCT_VERSION }}}",
+        companyName: "Kenan Ege",
+        productName: "Riziko",
+        productVersion: "0.335",
         showBanner: unityShowBanner,
       };
 
-      // Removed the custom meta viewport injection from JS because we added a better one in the HTML <head>
       if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
         document.querySelector("#unity-container").className = "unity-mobile";
         canvas.className = "unity-mobile";
