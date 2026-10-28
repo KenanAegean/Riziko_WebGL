@@ -1,133 +1,200 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Riziko Phone Test</title>
-<meta name="claude:viewport-fit-sides" content="cover">
-<style>
-  /* Layout: one full-screen game canvas; a loading card on top until the game starts. Single dark look (the game's own). */
-  :root {
-    --night: #0b0b1a;
-    --panel: #15152b;
-    --line: #3a3a63;
-    --text: #e9e7f5;
-    --muted: #9c98c2;
-    --purple: #a44ccc;
-    --danger: #e06666;
-    --mono: "Silkscreen", "Courier New", monospace;
-    --body: "Space Mono", ui-monospace, monospace;
-    color-scheme: dark;
-  }
-  [hidden] { display: none !important; }
-  html, body { height: 100%; }
-  body {
-    background: var(--night);
-    color: var(--text);
-    font-family: var(--body);
-    overflow: hidden;
-    overscroll-behavior: none;
-  }
-  #stage {
-    position: fixed;
-    inset: 0;
-    padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
-    background: var(--night);
-  }
-  #unity-canvas {
-    display: block;
-    width: 100%;
-    height: 100%;
-    background: var(--night);
-    touch-action: none;
-    outline: none;
-  }
-  #loading {
-    position: fixed;
-    inset: 0;
-    display: grid;
-    place-items: center;
-    padding-left: max(16px, env(safe-area-inset-left, 0px));
-    padding-right: max(16px, env(safe-area-inset-right, 0px));
-    background: var(--night);
-  }
-  .card {
-    width: min(360px, 100%);
-    display: grid;
-    gap: 14px;
-    padding: 22px 20px;
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 6px;
-  }
-  .card h1 {
-    margin: 0;
-    font-family: var(--mono);
-    font-size: 30px;
-    letter-spacing: 0.08em;
-    text-wrap: balance;
-  }
-  .card p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
-  .bar { height: 10px; background: var(--night); border: 1px solid var(--line); border-radius: 3px; overflow: hidden; }
-  .bar > div { height: 100%; width: 0%; background: var(--purple); transition: width 0.2s linear; }
-  #status { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; letter-spacing: 0.04em; }
-  #error { color: var(--danger); font-size: 13px; line-height: 1.5; white-space: pre-wrap; }
-  @media (prefers-reduced-motion: reduce) { .bar > div { transition: none; } }
-</style>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Space+Mono&display=swap">
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Unity Web Player | Riziko</title>
+    <link rel="shortcut icon" href="TemplateData/favicon.ico">
+    <style>
+      /* --- MODERN DARK THEME CSS --- */
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        width: 100vw;
+        height: 100vh;
+        background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); /* Deep space gradient */
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      }
+      
+      #unity-container, #unity-fullscreen-container {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
 
-<div id="stage"><canvas id="unity-canvas" tabindex="-1"></canvas></div>
+      #unity-canvas {
+        width: 100% !important;
+        height: 100% !important;
+        background-color: transparent !important;
+      }
 
-<div id="loading">
-  <div class="card">
-    <h1>RIZIKO</h1>
-    <p>Phone test build. Portrait uses the phone layout; turn the phone sideways for the PC layout.</p>
-    <div class="bar"><div id="progress"></div></div>
-    <div id="status">Loading 19 MB…</div>
-    <div id="error" hidden></div>
-  </div>
-</div>
+      /* Glassmorphism Loading Box */
+      #unity-loading-container {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background: rgba(0, 0, 0, 0.6);
+        padding: 40px 50px;
+        border-radius: 16px;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        z-index: 10;
+      }
 
-<script>
-  (function () {
-    var canvas = document.getElementById("unity-canvas");
-    var loading = document.getElementById("loading");
-    var progress = document.getElementById("progress");
-    var status = document.getElementById("status");
-    var error = document.getElementById("error");
+      #unity-logo {
+        width: 100px;
+        height: 100px;
+        background: url('TemplateData/unity-logo-dark.png') no-repeat center;
+        background-size: contain;
+        margin-bottom: 25px;
+        filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
+      }
 
-    function showError(message) {
-      error.hidden = false;
-      error.textContent = String(message);
-      status.textContent = "The game could not start.";
-      loading.hidden = false;
-    }
+      /* Glowing Progress Bar Track */
+      #unity-progress-bar-empty {
+        width: 300px;
+        height: 14px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+      }
 
-    var config = {
-      // Brotli files from Unity (decompression fallback), published under a .wasm name.
-      dataUrl: "Build/WebGL.data.wasm",
-      frameworkUrl: "Build/WebGL.framework.wasm",
-      codeUrl: "Build/WebGL.code.wasm",
-      streamingAssetsUrl: "StreamingAssets",
-      companyName: "Kenan Ege",
-      productName: "Riziko",
-      productVersion: "0.324",
-      // Sharp enough, and light enough for smooth animations on phones.
-      devicePixelRatio: Math.min(window.devicePixelRatio || 1, 1.5),
-      autoSyncPersistentDataPath: true,
-      showBanner: function (msg, type) { if (type === "error") showError(msg); }
-    };
+      /* Neon Fill */
+      #unity-progress-bar-full {
+        width: 0%;
+        height: 100%;
+        background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%);
+        box-shadow: 0 0 15px rgba(0, 210, 255, 0.6);
+        border-radius: 20px;
+        transition: width 0.3s ease-out;
+      }
 
-    var script = document.createElement("script");
-    script.src = "Build/WebGL.loader.js";
-    script.onerror = function () { showError("The game loader did not load."); };
-    script.onload = function () {
-      createUnityInstance(canvas, config, function (p) {
-        progress.style.width = Math.round(p * 100) + "%";
-        status.textContent = p < 0.9 ? "Loading… " + Math.round(p * 100) + "%" : "Starting…";
-      }).then(function () {
-        loading.hidden = true;
-        canvas.focus();
-      }).catch(showError);
-    };
-    document.body.appendChild(script);
-  })();
-</script>
+      /* Pulsing Loading Text */
+      .loading-text {
+        color: #00d2ff;
+        margin-top: 20px;
+        font-size: 13px;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+        font-weight: bold;
+        animation: pulse 1.5s infinite;
+      }
 
-</body></html>
+      @keyframes pulse {
+        0% { opacity: 0.5; text-shadow: none; }
+        50% { opacity: 1; text-shadow: 0 0 10px #00d2ff; }
+        100% { opacity: 0.5; text-shadow: none; }
+      }
+
+      #unity-footer {
+        display: none; /* Hidden for true fullscreen */
+      }
+    </style>
+  </head>
+  <body>
+    <div id="unity-container" class="unity-desktop">
+      <div id="unity-fullscreen-container">
+        <canvas id="unity-canvas" tabindex="-1"></canvas>
+        <div id="unity-loading-container">
+          <div id="unity-logo"></div>
+          <div id="unity-progress-bar-empty">
+            <div id="unity-progress-bar-full"></div>
+          </div>
+          <!-- Added Custom Loading Text -->
+          <div class="loading-text">Loading Riziko...</div>
+        </div>
+      </div>
+      <div id="unity-warning"> </div>
+      <div id="unity-footer"></div>
+    </div>
+    <script>
+      let canvas = document.querySelector("#unity-canvas");
+      let fullscreenContainer = document.querySelector("#unity-fullscreen-container");
+
+      function unityShowBanner(msg, type) {
+        var warningBanner = document.querySelector("#unity-warning");
+        function updateBannerVisibility() {
+          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+        }
+        var div = document.createElement('div');
+        div.innerHTML = msg;
+        warningBanner.appendChild(div);
+        if (type == 'error') div.style = 'background: red; padding: 10px; color: white;';
+        else {
+          if (type == 'warning') div.style = 'background: yellow; padding: 10px; color: black;';
+          setTimeout(function() {
+            warningBanner.removeChild(div);
+            updateBannerVisibility();
+          }, 5000);
+        }
+        updateBannerVisibility();
+      }
+
+      var buildUrl = "Build";
+      var loaderUrl = buildUrl + "/riziko_0315.loader.js";
+      var config = {
+        arguments: [],
+        dataUrl: buildUrl + "/riziko_0315.data.unityweb",
+        frameworkUrl: buildUrl + "/riziko_0315.framework.js.unityweb",
+        codeUrl: buildUrl + "/riziko_0315.wasm.unityweb",
+        streamingAssetsUrl: "StreamingAssets",
+        fullscreenElementID: "unity-fullscreen-container",
+        companyName: "Kenan Ege",
+        productName: "Riziko",
+        productVersion: "0.335",
+        showBanner: unityShowBanner,
+      };
+
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        var meta = document.createElement('meta');
+        meta.name = 'viewport';
+        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+        document.getElementsByTagName('head')[0].appendChild(meta);
+        document.querySelector("#unity-container").className = "unity-mobile";
+        canvas.className = "unity-mobile";
+      } else {
+        fullscreenContainer.style.width = "100%";
+        fullscreenContainer.style.height = "100%";
+      }
+
+      // Disabled the static background image during loading to show the dark gradient
+      // canvas.style.background = "url('" + buildUrl + "/riziko_0315.jpg') center / cover";
+
+      var script = document.createElement("script");
+      script.src = loaderUrl;
+      script.onload = () => {
+        const loadingContainer = document.querySelector("#unity-loading-container");
+        const progressBarFull = document.querySelector("#unity-progress-bar-full");
+
+        createUnityInstance(canvas, config, (progress) => {
+          if (progress < 1) {
+            loadingContainer.style.display = "flex";
+            progressBarFull.style.width = 100 * progress + "%";
+          } else {
+            // Fade out effect when done
+            loadingContainer.style.transition = "opacity 0.5s ease";
+            loadingContainer.style.opacity = "0";
+            setTimeout(() => { loadingContainer.style.display = "none"; }, 500);
+          }
+        }).then((unityInstance) => {
+          // Setup complete
+        }).catch((message) => {
+          alert(message);
+        });
+      };
+
+      document.body.appendChild(script);
+    </script>
+  </body>
+</html>
