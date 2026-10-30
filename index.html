@@ -2,126 +2,41 @@
 <html lang="en-us">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Unity Web Player | Riziko</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
-    <style>
-      /* --- MOBILE FIXED DARK THEME CSS --- */
-      html, body {
-        margin: 0;
-        padding: 0;
-        width: 100%;
-        height: 100%; /* Fixes the mobile 100vh address bar bug */
-        overflow: hidden;
-        background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        overscroll-behavior: none; /* Prevent bounce scrolling on iOS */
-      }
-      
-      #unity-container, #unity-fullscreen-container {
-        width: 100%;
-        height: 100%;
-        position: absolute;
-        top: 0;
-        left: 0;
-        /* Flexbox guarantees absolute centering */
-        display: flex;
-        justify-content: center;
-        align-items: center;
-      }
-
-      #unity-canvas {
-        width: 100% !important;
-        height: 100% !important;
-        background-color: transparent !important;
-      }
-
-      /* Glassmorphism Loading Box */
-      #unity-loading-container {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        background: rgba(0, 0, 0, 0.6);
-        padding: 40px 50px;
-        border-radius: 16px;
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        z-index: 10;
-      }
-
-      #unity-logo {
-        width: 100px;
-        height: 100px;
-        background: url('TemplateData/unity-logo-dark.png') no-repeat center;
-        background-size: contain;
-        margin-bottom: 25px;
-        filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
-      }
-
-      #unity-progress-bar-empty {
-        width: 300px;
-        height: 14px;
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 20px;
-        overflow: hidden;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
-      }
-
-      #unity-progress-bar-full {
-        width: 0%;
-        height: 100%;
-        background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%);
-        box-shadow: 0 0 15px rgba(0, 210, 255, 0.6);
-        border-radius: 20px;
-        transition: width 0.3s ease-out;
-      }
-
-      .loading-text {
-        color: #00d2ff;
-        margin-top: 20px;
-        font-size: 13px;
-        letter-spacing: 4px;
-        text-transform: uppercase;
-        font-weight: bold;
-        animation: pulse 1.5s infinite;
-      }
-
-      @keyframes pulse {
-        0% { opacity: 0.5; text-shadow: none; }
-        50% { opacity: 1; text-shadow: 0 0 10px #00d2ff; }
-        100% { opacity: 0.5; text-shadow: none; }
-      }
-      
-      #unity-footer { display: none; }
-    </style>
+    <link rel="stylesheet" href="TemplateData/style.css">
   </head>
   <body>
     <div id="unity-container" class="unity-desktop">
       <div id="unity-fullscreen-container">
-        <canvas id="unity-canvas" tabindex="-1"></canvas>
+        <canvas id="unity-canvas" width="1280" height="720" tabindex="-1"></canvas>
         <div id="unity-loading-container">
-          <div id="unity-logo"></div>
-          <div id="unity-progress-bar-empty">
-            <div id="unity-progress-bar-full"></div>
+          <div id="unity-loading-bar">
+            <div id="unity-logo"></div>
+            <div id="unity-progress-bar-empty">
+              <div id="unity-progress-bar-full"></div>
+            </div>
           </div>
-          <div class="loading-text">Loading Riziko...</div>
         </div>
       </div>
       <div id="unity-warning"> </div>
-      <div id="unity-footer"></div>
+      <div id="unity-footer">
+        <div id="unity-logo-title-footer"></div>
+        <div id="unity-fullscreen-button"></div>
+        <div id="unity-build-title">Riziko</div>
+      </div>
     </div>
     <script>
       let canvas = document.querySelector("#unity-canvas");
       let fullscreenContainer = document.querySelector("#unity-fullscreen-container");
 
+      // Shows a temporary message banner/ribbon for a few seconds, or
+      // a permanent error message on top of the canvas if type=='error'.
+      // If type=='warning', a yellow highlight color is used.
+      // Modify or remove this function to customize the visually presented
+      // way that non-critical warnings and error messages are presented to the
+      // user.
       function unityShowBanner(msg, type) {
         var warningBanner = document.querySelector("#unity-warning");
         function updateBannerVisibility() {
@@ -130,9 +45,9 @@
         var div = document.createElement('div');
         div.innerHTML = msg;
         warningBanner.appendChild(div);
-        if (type == 'error') div.style = 'background: red; padding: 10px; color: white;';
+        if (type == 'error') div.style = 'background: red; padding: 10px;';
         else {
-          if (type == 'warning') div.style = 'background: yellow; padding: 10px; color: black;';
+          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
           setTimeout(function() {
             warningBanner.removeChild(div);
             updateBannerVisibility();
@@ -149,23 +64,62 @@
         frameworkUrl: buildUrl + "/riziko_0338.framework.js.unityweb",
         codeUrl: buildUrl + "/riziko_0338.wasm.unityweb",
         streamingAssetsUrl: "StreamingAssets",
+
+        // If you have a custom web site structure, or want to place multiple Unity build instances on the same page,
+        // you can pass fullscreenElementID: "my-unity-fullscreen-container-id", in this configuration field to
+        // explicitly point to the element tree root that is displayed in fullscreen mode.
         fullscreenElementID: "unity-fullscreen-container",
+
         companyName: "Kenan Ege",
         productName: "Riziko",
         productVersion: "0.339",
         showBanner: unityShowBanner,
+        // errorHandler: function(err, url, line) {
+        //    alert("error " + err + " occurred at line " + line);
+        //    // Return 'true' if you handled this error and don't want Unity
+        //    // to process it further, 'false' otherwise.
+        //    return true;
+        // },
       };
 
+      // By default, Unity keeps WebGL canvas render target size matched with
+      // the DOM size of the canvas element (scaled by window.devicePixelRatio)
+      // Set this to false if you want to decouple this synchronization from
+      // happening inside the engine, and you would instead like to size up
+      // the canvas DOM size and WebGL render target sizes yourself.
+      // config.matchWebGLToCanvasSize = false;
+
+      // If you would like all file writes inside Unity Application.persistentDataPath
+      // directory to automatically persist so that the contents are remembered when
+      // the user revisits the site the next time, uncomment the following line:
+      // config.autoSyncPersistentDataPath = true;
+      // This autosyncing is currently not the default behavior to avoid regressing
+      // existing user projects that might rely on the earlier manual
+      // JS_FileSystem_Sync() behavior, but in future Unity version, this will be
+      // expected to change.
+
       if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        // Mobile device style: fill the whole browser client area with the game canvas:
+
+        var meta = document.createElement('meta');
+        meta.name = 'viewport';
+        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+        document.getElementsByTagName('head')[0].appendChild(meta);
         document.querySelector("#unity-container").className = "unity-mobile";
         canvas.className = "unity-mobile";
+
+        // To lower canvas resolution on mobile devices to gain some
+        // performance, uncomment the following line:
+        // config.devicePixelRatio = 1;
+
+
       } else {
-        fullscreenContainer.style.width = "100%";
-        fullscreenContainer.style.height = "100%";
+        // Desktop style: Render the game canvas container in a window that can be maximized to fullscreen:
+        fullscreenContainer.style.width = "1280px";
+        fullscreenContainer.style.height = "720px";
       }
 
-      // Disabled static background to show the dark gradient
-      // canvas.style.background = "url('" + buildUrl + "/riziko_0338.jpg') center / cover";
+      canvas.style.background = "url('" + buildUrl + "/riziko_0338.jpg') center / cover";
 
       var script = document.createElement("script");
       script.src = loaderUrl;
@@ -175,13 +129,23 @@
 
         createUnityInstance(canvas, config, (progress) => {
           if (progress < 1) {
-            loadingContainer.style.display = "flex";
+            loadingContainer.style.display = "block";
             progressBarFull.style.width = 100 * progress + "%";
           } else {
-            loadingContainer.style.transition = "opacity 0.5s ease";
-            loadingContainer.style.opacity = "0";
-            setTimeout(() => { loadingContainer.style.display = "none"; }, 500);
+            loadingContainer.style.display = "none";
           }
         }).then((unityInstance) => {
-          // Setup complete
-        }).catch
+                document.querySelector("#unity-fullscreen-button").onclick = () => {
+                  unityInstance.SetFullscreen(1);
+                };
+
+              }).catch((message) => {
+                alert(message);
+              });
+            };
+
+      document.body.appendChild(script);
+
+    </script>
+  </body>
+</html>
