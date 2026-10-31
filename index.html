@@ -18,7 +18,7 @@
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         overscroll-behavior: none; /* Prevent bounce scrolling on iOS */
       }
-      
+
       #unity-container, #unity-fullscreen-container {
         width: 100%;
         height: 100%;
@@ -99,14 +99,13 @@
         50% { opacity: 1; text-shadow: 0 0 10px #00d2ff; }
         100% { opacity: 0.5; text-shadow: none; }
       }
-      
+
       #unity-footer { display: none; }
     </style>
   </head>
   <body>
     <div id="unity-container" class="unity-desktop">
       <div id="unity-fullscreen-container">
-        <!-- Removed fixed width/height attributes from canvas -->
         <canvas id="unity-canvas" tabindex="-1"></canvas>
         <div id="unity-loading-container">
           <div id="unity-logo"></div>
@@ -147,12 +146,12 @@
       }
 
       var buildUrl = "Build";
-      var loaderUrl = buildUrl + "/riziko_0350.loader.js";
+      var loaderUrl = buildUrl + "/riziko_0351.loader.js";
       var config = {
         arguments: [],
-        dataUrl: buildUrl + "/riziko_0350.data.unityweb",
-        frameworkUrl: buildUrl + "/riziko_0350.framework.js.unityweb",
-        codeUrl: buildUrl + "/riziko_0350.wasm.unityweb",
+        dataUrl: buildUrl + "/riziko_0351.data.unityweb",
+        frameworkUrl: buildUrl + "/riziko_0351.framework.js.unityweb",
+        codeUrl: buildUrl + "/riziko_0351.wasm.unityweb",
         streamingAssetsUrl: "StreamingAssets",
         fullscreenElementID: "unity-fullscreen-container",
         companyName: "Kenan Ege",
@@ -169,8 +168,7 @@
         fullscreenContainer.style.height = "100%";
       }
 
-      // Disabled static background to show the dark gradient theme
-      // canvas.style.background = "url('" + buildUrl + "/riziko_0350.jpg') center / cover";
+      // No static background image: the dark gradient shows while loading.
 
       var script = document.createElement("script");
       script.src = loaderUrl;
